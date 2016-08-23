@@ -1,0 +1,23 @@
+1. Read the most recent version of the class syllabus, either the one on the course website
+or the one checked into this repository. Note that somewhere in the syllabus is an unusual
+statement; make note of this statement.
+
+2. Create a simple C program in a file named "lab1.c" in this directory. This program should simply 
+print two lnes of text. The first should say "I, *your name here*, have read the syllabus and 
+agree to policies described in it". The second line should be the unusual statement you found while
+reading the syllabus above.
+
+3. Create a makefile for your C program (named "Makefile") that, when 'make' is run at
+the command line with no arguments, compiles lab1.c into the executable 'lab1'. Also create
+a make target entitled 'clean' that removes the lab1 executable and all object files from 
+the current directory.
+
+4. Make sure that "lab1.c" and "Makefile" are added to your git repository, and that your changes 
+are pushed back to lobogit.
+
+5. On lobogit, go to list of commits for your project, click on the commit you want to use for your 
+submission of this assignment, and make note of the full commit ID of the git commit you want
+to turn in (it should be a hex string about 40 characters long).
+
+6. On UNM Learn, turn in *only* the commit ID of the version of your project you want graded by the 
+due time of the assignment.
