@@ -1,7 +1,7 @@
 /* 
  * CS:APP Data Lab 
  * 
- * <Please put your name and userid here>
+ * <Linh Tran <litran11794@unm.edu>>
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -171,7 +171,7 @@ NOTES:
  *   Rating: 1
  */
 int bitAnd(int x, int y) {
-  return 2;
+  return ~ (~ x | ~ y);
 }
 /* 
  * getByte - Extract byte n from word x
@@ -181,8 +181,14 @@ int bitAnd(int x, int y) {
  *   Max ops: 6
  *   Rating: 2
  */
+
+//shift by n bytes and mask out the insignficant bits.
+//n<<3 = n*2^3 = n*8
+//x >> n*8
+//x >> n*8 & 1111 1111
+//order of operations?((x >> (n << 3)) & 0*ff)
 int getByte(int x, int n) {
-  return 2;
+  return (0*ff & (x >> (n << 3)));
 }
 /* 
  * logicalShift - shift x to the right by n, using a logical shift
