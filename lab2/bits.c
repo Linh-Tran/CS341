@@ -171,8 +171,12 @@ NOTES:
  *   Rating: 1
  */
 int bitAnd(int x, int y) {
+<<<<<<< HEAD
   
        return (~(~x | ~y));
+=======
+  return ~ (~ x | ~ y);
+>>>>>>> d4775b147a0293c09bafd3438742f4989544d95a
 }
 /* 
  * getByte - Extract byte n from word x
@@ -182,8 +186,14 @@ int bitAnd(int x, int y) {
  *   Max ops: 6
  *   Rating: 2
  */
+
+//shift by n bytes and mask out the insignficant bits.
+//n<<3 = n*2^3 = n*8
+//x >> n*8
+//x >> n*8 & 1111 1111
+//order of operations?((x >> (n << 3)) & 0*ff)
 int getByte(int x, int n) {
-  return 2;
+  return (0*ff & (x >> (n << 3)));
 }
 /* 
  * logicalShift - shift x to the right by n, using a logical shift
