@@ -331,13 +331,6 @@ int ilog2(int x) {
  *   Rating: 2
  */
 unsigned float_neg(unsigned uf) {
-  /* Flips the sign bit if uf isn't inf or NaN */
-  unsigned mask = 0x80000000;
-  unsigned NaN = 0x7FC00000;
-  unsigned inf = 0xFFC00000;
-  if (uf == NaN || uf == inf)
-    return uf;
-  return uf ^ mask;
  return 2;
 }
 /* 
