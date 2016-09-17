@@ -181,16 +181,11 @@ int bitAnd(int x, int y) {
  *   Max ops: 6
  *   Rating: 2
  */
-
-//shift by n bytes and mask out the insignficant bits.
-//n<<3 = n*2^3 = n*8
-//x >> n*8
-//x >> n*8 & 1111 1111
-//order of operations?((x >> (n << 3)) & 0*ff)
 int getByte(int x, int n) {
-  int ff = 255; //0xff
   int shiftByNbytes = n << 3; //n*2^3 = n*8
-  return (ff & (x >> (shiftByNbytes)));
+  //shift x by n*8 bits
+  //turn off the remaining insignficant bits.
+  return (0xff & (x >> (shiftByNbytes)));
 }
 /* 
  * logicalShift - shift x to the right by n, using a logical shift
@@ -201,6 +196,9 @@ int getByte(int x, int n) {
  *   Rating: 3 
  */
 int logicalShift(int x, int n) {
+  //Shift x by n
+  //xor with a mask that saves the on bits
+  //adds a 0 in the most signficant bit.
   return (x >> n) ^ (((x & (1 << 31)) >> n) << 1);
 }
 /*
@@ -211,32 +209,6 @@ int logicalShift(int x, int n) {
  *   Rating: 4
  */
 int bitCount(int x) {
-  int bits = 0;
-  int mask = 0x1 | (0x1 << 8) | (0x1 << 16) | (0x1 << 24);
-  bits += (x & mask);
-  bits += ((x >> 1) & mask);
-  bits += ((x >> 2) & mask);
-  bits += ((x >> 3) & mask);
-  bits += ((x >> 4) & mask);
-  bits += ((x >> 5) & mask);
-  bits += ((x >> 6) & mask);
-  bits += ((x >> 7) & mask);
-  return (bits & 0xFF) + ((bits >> 8) & 0xFF) + ((bits >> 16) & 0xFF) + ((bits >> 24) & 0xFF);
-
-
-  /*
-  int onesBit     = 1431655765; // 0x55555555
-  int twoBits     = 858993459;  // 0x33333333
-  int fourBits    = 252645135;  // 0x0f0f0f0f
-  int eightBits   = 16711935;   // 0x00ff00ff
-  int sixteenBits = 65535;      // 0x0000ffff
- 
-  x = (onesBit     & x) + ((x >> 1)  & onesBit);
-  x = (twoBits     & x) + ((x >> 2)  & twoBits);
-  x = (fourBits    & x) + ((x >> 4)  & fourBits);
-  x = (eightBits   & x) + ((x >> 8)  & eightBits);
-  x = (sixteenBits & x) + ((x >> 16) & sixteenBits); 
-  return x;*/
   return 2;
 }
 /* 
@@ -247,134 +219,105 @@ int bitCount(int x) {
  *   Rating: 4 
  */
 int bang(int x) {
-  //if x == 0, flipX == -1
-  int flipX = ~x; 
-  // if flipX == -1, negX == 0;
-  // if flipX == -3, negX == -3
-  int negX = flipX +1;
-  // if negX == 0, turnOnOrigBits == 0
-  // if negX == -1, turnOnOrigBits == -1
+  //Calculate 2 compliment of x.
+  int negX = ~x +1;
   int turnOnOrigBits = (x | negX);
   return (turnOnOrigBits >> 31) + 1;  
 }
 /* 
  * tmin - return minimum two's complement integer 
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 4
- *   Rating: 1
+ *   legal ops: ! ~ & ^ | + << >>
+ *   max ops: 4
+ *   rating: 1
  */
 int tmin(void) {
+  //returns 0x80000000 
+  // or 1000 0000 0000 0000 0000 0000 0000 0000
   int tmin = 1<<31;
   return tmin;
 }
 /* 
- * fitsBits - return 1 if x can be represented as an 
+ * fitsbits - return 1 if x can be represented as an 
  *  n-bit, two's complement integer.
  *   1 <= n <= 32
- *   Examples: fitsBits(5,3) = 0, fitsBits(-4,3) = 1
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 15
- *   Rating: 2
+ *   examples: fitsbits(5,3) = 0, fitsbits(-4,3) = 1
+ *   legal ops: ! ~ & ^ | + << >>
+ *   max ops: 15
+ *   rating: 2
  */
 int fitsBits(int x, int n) {
-  int mask = x >> 31;
-  int nMinus1 = n + ~0;
-  return !(((~x & mask) + (x & ~mask)) >> nMinus1);
+  //get msb 
+  int msb = x >> 31;
+  //shift result by n-1 to account for sign bit.
+  int nminus1 = n + ~0;
+  //mask x with ~x with msb and x with msb and 
+  //shift by n-1 to return
+  return !(((~x & msb) | (x & ~msb)) >> nminus1);
 }
 /* 
- * divpwr2 - Compute x/(2^n), for 0 <= n <= 30
- *  Round toward zero
- *   Examples: divpwr2(15,1) = 7, divpwr2(-33,4) = -2
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 15
- *   Rating: 2
+ * divpwr2 - compute x/(2^n), for 0 <= n <= 30
+ *  round toward zero
+ *   examples: divpwr2(15,1) = 7, divpwr2(-33,4) = -2
+ *   legal ops: ! ~ & ^ | + << >>
+ *   max ops: 15
+ *   rating: 2
  */
 int divpwr2(int x, int n) {
-  return (x + ((x >> 31) & ((1 << n) + ~0))) >> n;
+  //have to account for negative input by x >> n +1
+  int mask = (1 << n) + ~0;
+  //return 1 or 0 base on the msb of x.
+  int offset = (x >> 31) & mask;  
+  //add possible offset and preform arithmetic shift.
+  return (x + offset) >> n;
 }
 /* 
  * negate - return -x 
- *   Example: negate(1) = -1.
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 5
- *   Rating: 2
+ *   example: negate(1) = -1.
+ *   legal ops: ! ~ & ^ | + << >>
+ *   max ops: 5
+ *   rating: 2
  */
 int negate(int x) {
-  int twosComp = ~x +1;
-  return twosComp;
+  //calculate two's complement 
+  // 1 => ~0001 + 1 = 1110 + 1 => 11111
+  int twoscomp = ~x +1;
+  return twoscomp;
 }
 /* 
- * isPositive - return 1 if x > 0, return 0 otherwise 
- *   Example: isPositive(-1) = 0.
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 8
- *   Rating: 3
+ * ispositive - return 1 if x > 0, return 0 otherwise 
+ *   example: ispositive(-1) = 0.
+ *   legal ops: ! ~ & ^ | + << >>
+ *   max ops: 8
+ *   rating: 3
  */
-int isPositive(int x) {
-  // x>>31 perserves 1 if neg number
-  // & 1 turn off the 1s from the left.
+int isPositive(int x) {  
+  //find the msb 
   int msb =  (x>>31)&1;
-  //one == 1
-  int one = !!x; 
-  //0^1 => 1, 1^1 => 0
-  return msb^one;;
+  //mask msb with a check if x is not zero.
+  int mask= !!x;
+  //if msb is 0 then result is positive
+  //else if would be negative.
+  return msb^mask;
 }
 /* 
- * isLessOrEqual - if x <= y  then return 1, else return 0 
- *   Example: isLessOrEqual(4,5) = 1.
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 24
- *   Rating: 3
+ * islessorequal - if x <= y  then return 1, else return 0 
+ *   example: islessorequal(4,5) = 1.
+ *   legal ops: ! ~ & ^ | + << >>
+ *   max ops: 24
+ *   rating: 3
  */
-int isLessOrEqual(int x, int y) {
-  int negX = ~x+1;
-  int addY = negX + y; /*negative if x > y*/
-  int checkSign = addY >> 31 & 1; /*shifts sign bit to the right*/
-
-  /*the above will not work for values that push the bounds of ints
-    the following code checks very large/small values*/
-  int leftBit = 1 << 31;
-  int xLeft = leftBit & x;
-  int yLeft = leftBit & y;
-  int xOrd = xLeft ^ yLeft;
-  xOrd = (xOrd >> 31) & 1;
- 
-  return (xOrd & (xLeft>>31)) | (!checkSign & !xOrd);
-
-  //return 2;
+int isLessOrEqual(int x, int y) {   
+  return 2;
 }
 /*
  * ilog2 - return floor(log base 2 of x), where x > 0
- *   Example: ilog2(16) = 4
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 90
- *   Rating: 4
+ *   example: ilog2(16) = 4
+ *   legal ops: ! ~ & ^ | + << >>
+ *   max ops: 90
+ *   rating: 4
  */
 int ilog2(int x) {
-  //  x = x << 2;
-  //return x;
-
-  /* calculates the log by checking the first four bytes, then two, then 1 then 4 bits ...*/
-  int mask1 = 0xFF << 24 | 0xFF << 16;
-  int mask2 = 0xFF << 8;
-  int mask3 = 0xF0;
-  int mask4 = 0x0C;
-  int output = 0;
-  int shift;
-  output = !!(x & mask1) << 4; /* if anythings in high 4 bytes, output is at least 16 */
-  x >>= output; /* bring the high bits down, if anythings up there */
-  shift = !!(x & mask2) << 3; /* check next two bytes, if anythings there, its at least 8 more*/
-  x >>= shift;
-  output += shift;
-  shift = !!(x & mask3) << 2; /* check the next byte, if anythings there, its at least 4 more */
-  x >>= shift;
-  output += shift;
-  shift = !!(x & mask4) << 1; /* check the next 4 bits, if anythings there, its at least 2 more */
-  x >>= shift;
-  output += shift;
-  output += (x >> 1); /* check the second to last bit, if anythings there, its 1 more */
-  /* can disregard the last bit, because it wont matter if to the log */
-  return output;
+  return 2;
 }
 /* 
  * float_neg - Return bit-level equivalent of expression -f for
@@ -407,44 +350,7 @@ unsigned float_neg(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_i2f(int x) {
-  /* squeeze x into 23 bits, rounding following the rounding rules */
-  unsigned sign, fraction, exponent = 150, temp, b = 2, top, bottom;
-  if (x == 0) return 0;
-  if (x == 0x80000000) return 3472883712u;
-  sign = (x & 0x80000000);
-  fraction = (sign) ? (-x) : (x);
-
-  temp = fraction;
-  while (temp & 0xFF000000) {
-    /* standard rounding */
-    temp = (fraction + (b / 2)) / (b);
-    b <<= 1;
-    exponent++;
-  }
-  while (temp <= 0x007FFFFF) {
-    temp <<= 1;
-    exponent--;
-  }
-  if (fraction & 0xFF000000) {
-    b = 1 << (exponent - 150);
-
-    temp = fraction / b;
-    bottom = fraction % b;
-    top = b - bottom;
-
-    /* if temp is closer to fraction/b than fraction/b + 1, or its odd,
-       round up */
-    if ((top < bottom) || ((top == bottom) & temp))
-      ++temp;
-
-    fraction = temp;
-  } else {
-    while (fraction <= 0x007FFFFF)
-      fraction <<= 1;
-  }
-
-  return (sign) | (exponent << 23) | (fraction & 0x007FFFFF);
-  // return 2;
+  return 2;
 }
 /* 
  * float_twice - Return bit-level equivalent of expression 2*f for
@@ -458,23 +364,5 @@ unsigned float_i2f(int x) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-  /* if its denormalized double fraction, if its normailized, increase 
-   * exponent, if it on the edege, decrement fraction, increment epx. */
-  unsigned expn = (uf >> 23) & 0xFF;
-  unsigned sign = uf & 0x80000000;
-  unsigned frac = uf & 0x007FFFFF;
-  if (expn == 255 || (expn == 0 && frac == 0))
-    return uf;
-
-  if (expn) {
-    expn++;
-  } else if (frac == 0x7FFFFF) {
-    frac--;
-    expn++;
-  } else {
-    frac <<= 1;
-  }
-
-  return (sign) | (expn << 23) | (frac);
-  //  return 2;
+  return 2;
 }
