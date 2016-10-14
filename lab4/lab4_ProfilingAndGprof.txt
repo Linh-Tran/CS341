@@ -1,0 +1,165 @@
+1 Setup:
+litran117@phobos:~/cs341-fall16/lab4$ ls
+dictionary.c  lab4.pdf		      Makefile  moby.txt  options.c  options.h  shakespeare.txt
+litran117@phobos:~/cs341-fall16/lab4$ make dictionary
+
+2 Comiling Programs for Profiling
+gcc -g -Wall -O1 -I. -I../include -msse4 -fno-inline -fno-optimize-sibling-calls -mfpmath=sse -m64 dictionary.c options.c -o dictionary
+gcc -g -Wall -O1 -I. -I../include -msse4 -fno-inline -fno-optimize-sibling-calls -mfpmath=sse -m64 -pg  dictionary.c options.c -o dictionary-pg
+gcc -g -Wall -O1 -I. -I../include -msse4 -fno-inline -fno-optimize-sibling-calls -mfpmath=sse -m64 -S dictionary.c
+litran117@phobos:~/cs341-fall16/lab4$ ./dictionary-pg -n 2 -file moby.txt 
+verbose				      1
+size				      1024
+hash				      0
+lower				      0
+find				      0
+ngram				      2
+quicksort			      0
+file				      moby.txt
+N-gram size 2
+Lower case function lower1
+Hash function h_mod
+Find element function find_ele_rec
+1840 'of the'
+214365 n-grams, 114421 unique, 91775 singletons.  Most common (1840) = 'of the'.  Longest (4 have length 29) = 'phrenological characteristics'
+Total time = 9.212805 seconds
+
+Examing the Generated Profiling Data
+litran117@phobos:~/cs341-fall16/lab4$ gprof dictionary-pg > profile.txt
+litran117@phobos:~/cs341-fall16/lab4$ ls
+dictionary    dictionary-pg  gmon.out  Makefile  options.c  profile.txt
+dictionary.c  dictionary.s   lab4.pdf  moby.txt  options.h  shakespeare.txt
+litran117@phobos:~/cs341-fall16/lab4$ emacs profile.txt 
+
+3 Using the flat profile
+The default spends %78.83 most of its time in sort_words because it appears that
+function spends time under self/s/call. The profile displays the order in which functions takes the most time to execute, the function that takes the 2nd most time to run is find_ele_rec and there are 19 functions in this program.
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 78.83      5.04     5.04        1     5.04     5.04  sort_words
+ 18.81      6.24     1.20   214364     0.00     0.00  find_ele_rec
+  0.78      6.29     0.05   114421     0.00     0.00  save_string
+  0.63      6.33     0.04  2953309     0.00     0.00  Strlen
+  0.63      6.37     0.04   214364     0.00     0.00  lower1
+  0.31      6.39     0.02   214364     0.00     0.00  h_mod
+  0.16      6.40     0.01   114421     0.00     0.00  new_ele
+  0.00      6.40     0.00   214366     0.00     0.00  get_word
+  0.00      6.40     0.00   214365     0.00     0.00  get_token
+  0.00      6.40     0.00   214364     0.00     0.00  insert_string
+  0.00      6.40     0.00       16     0.00     0.00  match_length
+  0.00      6.40     0.00        7     0.00     0.00  add_int_option
+  0.00      6.40     0.00        2     0.00     0.00  find_option
+  0.00      6.40     0.00        1     0.00     0.00  add_string_option
+  0.00      6.40     0.00        1     0.00     0.00  init_token
+  0.00      6.40     0.00        1     0.00     0.00  new_table
+  0.00      6.40     0.00        1     0.00     0.00  parse_options
+  0.00      6.40     0.00        1     0.00     0.00  show_options
+  0.00      6.40     0.00        1     0.00     6.40  word_freq
+
+4 Using the call chain analysis
+litran117@phobos:~/cs341-fall16/lab4$ ./dictionary-pg -quicksort 1 -n 2 -file moby.txt 
+verbose	1
+size	1024
+hash	0
+lower	0
+find	0
+ngram	2
+quicksort	1
+file	moby.txt
+N-gram size 2
+Lower case function lower1
+Hash function h_mod
+Find element function find_ele_rec
+1840	'of the'
+214365 n-grams, 114421 unique, 91775 singletons.  Most common (1840) = 'of the'.  Longest (4 have length 29) = 'phrenological characteristics'
+Total time = 4.080958 seconds/Users/linhtran/Desktop/lab4/lab4.pdf
+
+litran117@phobos:~/cs341-fall16/lab4$ gprof dictionary-pg > profile.txt 
+litran117@phobos:~/cs341-fall16/lab4$ emacs profile.txt 
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 85.37      1.04     1.04   214364     0.00     0.00  find_ele_rec
+  6.57      1.12     0.08   114421     0.00     0.00  save_string
+  3.28      1.16     0.04  2953309     0.00     0.00  Strlen
+  2.46      1.19     0.03   214364     0.00     0.00  h_mod
+  0.82      1.20     0.01   214365     0.00     0.00  get_token
+  0.82      1.21     0.01   214364     0.00     0.00  lower1
+  0.82      1.22     0.01        1     0.01     0.01  sort_words
+  0.00      1.22     0.00   214366     0.00     0.00  get_word
+  0.00      1.22     0.00   214364     0.00     0.00  insert_string
+  0.00      1.22     0.00   114421     0.00     0.00  new_ele
+  0.00      1.22     0.00       24     0.00     0.00  match_length
+  0.00      1.22     0.00        7     0.00     0.00  add_int_option
+  0.00      1.22     0.00        3     0.00     0.00  find_option
+  0.00      1.22     0.00        1     0.00     0.00  add_string_option
+  0.00      1.22     0.00        1     0.00     0.00  init_token
+  0.00      1.22     0.00        1     0.00     0.00  new_table
+  0.00      1.22     0.00        1     0.00     0.00  parse_options
+  0.00      1.22     0.00        1     0.00     0.00  show_options
+  0.00      1.22     0.00        1     0.00     1.22  word_freq
+
+The Strlen is a recursive function according to the chain profile where it call itself 2953309 and it is listed as a spontaneous function meaning that is parents of the function cannot be determined.
+
+5 Getting more experience with prof
+litran117@phobos:~/cs341-fall16/lab4$ ./dictionary-pg -quicksort 1 -lower 1 -n 2 -file moby.txt 
+verbose	1
+size	1024
+hash	0
+lower	1
+find	0
+ngram	2
+quicksort	1
+file	moby.txt
+N-gram size 2
+Lower case function lower2
+Hash function h_mod
+Find element function find_ele_rec
+1840	'of the'
+214365 n-grams, 114421 unique, 91775 singletons.  Most common (1840) = 'of the'.  Longest (4 have length 29) = 'phrenological characteristics'
+Total time = 3.995563 seconds
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 89.73      1.12     1.12   214364     0.00     0.00  find_ele_rec
+  6.41      1.20     0.08   114421     0.00     0.00  save_string
+  1.60      1.22     0.02   214364     0.00     0.00  h_mod
+  0.80      1.23     0.01   214365     0.00     0.00  get_token
+  0.80      1.24     0.01   214364     0.00     0.00  insert_string
+  0.40      1.25     0.01   871934     0.00     0.00  Strlen
+  0.40      1.25     0.01        1     0.01     0.01  new_table
+  0.00      1.25     0.00   214366     0.00     0.00  get_word
+  0.00      1.25     0.00   214364     0.00     0.00  lower2
+  0.00      1.25     0.00   114421     0.00     0.00  new_ele
+  0.00      1.25     0.00       32     0.00     0.00  match_length
+  0.00      1.25     0.00        7     0.00     0.00  add_int_option
+  0.00      1.25     0.00        4     0.00     0.00  find_option
+  0.00      1.25     0.00        1     0.00     0.00  add_string_option
+  0.00      1.25     0.00        1     0.00     0.00  init_token
+  0.00      1.25     0.00        1     0.00     0.00  parse_options
+  0.00      1.25     0.00        1     0.00     0.00  show_options
+  0.00      1.25     0.00        1     0.00     0.00  sort_words
+  0.00      1.25     0.00        1     0.00     1.25  word_freq
+
+-size N specifies the size of the hash table the larger the size the quicker it takes to run the program the default size is 1024.
+
+-find [0,1,2] the highest number executes the program the fastest. -find 2 is the fastest.
+
+-hash [0,1,2] runs the fastest with hash 1. Optimizes execution much faster than find.
+
+-n N prints out the most freq and largest adjacent words of size N the larger it is the more complex the word structure of the output is.
+
+Changing has makes the program runs the quickest.
+
+
+
