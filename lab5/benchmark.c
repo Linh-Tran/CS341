@@ -11,6 +11,8 @@
 
 #include "dgemm.h"
 
+#undef VERIFY
+
 extern char *optarg;
 extern int optind;
 extern int optopt;
@@ -226,6 +228,7 @@ int main(int argc, char **argv)
 		square_dgemm(n, (double (*)[])A, (double (*)[])B,
 			     (double (*)[])C);
 
+#ifdef VERIFY
 		/* Do not explicitly check that A and B were unmodified on 
 		 * square_dgemm exit
 		 *  - if they were, the following will most likely detect it:   
@@ -249,6 +252,7 @@ int main(int argc, char **argv)
 		for (int i = 0; i < n * n; ++i)
 			if (C[i] > 0)
 				die("*** FAILURE *** Error in matrix multiply exceeds componentwise error bounds.\n");
+#endif /* VERIFY */
 	}
 
 	free(buf);
