@@ -4,7 +4,7 @@ OPT = -O3 -mfpmath=sse -g -funroll-all-loops
 CFLAGS += -Wall -std=gnu99 -DGETTIMEOFDAY $(OPT)
 LDLIBS = -lgslcblas
 
-types = naive basic row col blocked rb copy
+types = naive basic row col blocked rb
 targets = $(patsubst %,benchmark_%,$(types))
 objects = benchmark.o $(patsubst %,dgemm_%.o,$(types))
 
